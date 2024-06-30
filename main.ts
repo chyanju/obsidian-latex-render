@@ -20,7 +20,7 @@ interface MyPluginSettings {
 	timeout: number;
 	enableCache: boolean;
 	cache: Array<[string, Set<string>]>;
-	cacheFolderPath: string;
+	cacheFolder: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -28,12 +28,12 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	timeout: 10000,
 	enableCache: true,
 	cache: [],
-	cacheFolderPath: "svg-cache",
+	cacheFolder: "svg-cache",
 };
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-	cacheFolderPath: string;
+	cacheFolderPathW: string;
 
 	cache: Map<string, Set<string>>; // Key: md5 hash of latex source. Value: Set of file path names.
 
@@ -64,15 +64,15 @@ export default class MyPlugin extends Plugin {
 	}
 
 	async loadCache() {
-		console.log("Loading cache", this.settings.cacheFolderPath);
-		this.cacheFolderPath = path.join(
+		console.log("Loading cache", this.settings.cacheFolder);
+		this.cacheFolderPathW = path.join(
 			(this.app.vault.adapter as FileSystemAdapter).getBasePath(),
-			this.settings.cacheFolderPath
+			this.settings.cacheFolder
 			// this.app.vault.configDir,
 			// "obsidian-latex-render-svg-cache"
 		);
-		if (!fs.existsSync(this.cacheFolderPath)) {
-			fs.mkdirSync(this.cacheFolderPath);
+		if (!fs.existsSync(this.cacheFolderPathW)) {
+			fs.mkdirSync(this.cacheFolderPathW);
 			this.cache = new Map();
 		} else {
 			this.cache = new Map(this.settings.cache);
@@ -84,7 +84,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 	unloadCache() {
-		fs.rmdirSync(this.cacheFolderPath, { recursive: true });
+		fs.rmdirSync(this.cacheFolderPathW, { recursive: true });
 	}
 
 	formatLatexSource(source: string) {
@@ -131,7 +131,7 @@ export default class MyPlugin extends Plugin {
 	) {
 		return new Promise<void>((resolve, reject) => {
 			let md5Hash = this.hashLatexSource(source);
-			let svgPath = path.join(this.cacheFolderPath, `${md5Hash}.svg`);
+			let svgPath = path.join(this.cacheFolderPathW, `${md5Hash}.svg`);
 
 			// SVG file has already been cached
 			// Could have a case where svgCache has the key but the cached file has been deleted
@@ -253,7 +253,7 @@ export default class MyPlugin extends Plugin {
 
 	removeSVGFromCache(key: string) {
 		this.cache.delete(key);
-		fs.rmSync(path.join(this.cacheFolderPath, `${key}.svg`));
+		fs.rmSync(path.join(this.cacheFolderPathW, `${key}.svg`));
 	}
 
 	removeFileFromCache(file_path: string) {
@@ -333,7 +333,7 @@ class SampleSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Enable caching of SVGs")
 			.setDesc(
-				"SVGs rendered by this pluging will be kept in `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
+				"SVGs rendered by this plugin will be kept in `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -347,14 +347,16 @@ class SampleSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Cache folder path")
 			.setDesc(
-				"SVGs rendered by this pluging will be kept in this folder, if set.  The default is `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
+				"SVGs rendered by this plugin will be kept in this folder, if set.  The default is `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
 			)
 			.addText((text) =>
 				text
-					.setValue(this.plugin.settings.cacheFolderPath)
+					.setValue(this.plugin.settings.cacheFolder)
 					.onChange(async (value) => {
-						this.plugin.settings.cacheFolderPath = value;
+						this.plugin.settings.cacheFolder = value;
 						await this.plugin.saveSettings();
+						this.plugin.unloadCache();
+						this.plugin.loadCache();
 					})
 			);
 	}
