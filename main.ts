@@ -21,6 +21,9 @@ interface MyPluginSettings {
 	enableCache: boolean;
 	cache: Array<[string, Set<string>]>;
 	cacheFolder: string;
+	additionalPackages: string;
+	pngCopy: boolean;
+	pngScale: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -29,11 +32,14 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	enableCache: true,
 	cache: [],
 	cacheFolder: "svg-cache",
+	additionalPackages: "",
+	pngCopy: false,
+	pngScale: "1",
 };
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-	cacheFolderPathW: string;
+	cacheFolderPath: string;
 
 	cache: Map<string, Set<string>>; // Key: md5 hash of latex source. Value: Set of file path names.
 
@@ -65,14 +71,14 @@ export default class MyPlugin extends Plugin {
 
 	async loadCache() {
 		console.log("Loading cache", this.settings.cacheFolder);
-		this.cacheFolderPathW = path.join(
+		this.cacheFolderPath = path.join(
 			(this.app.vault.adapter as FileSystemAdapter).getBasePath(),
 			this.settings.cacheFolder
 			// this.app.vault.configDir,
 			// "obsidian-latex-render-svg-cache"
 		);
-		if (!fs.existsSync(this.cacheFolderPathW)) {
-			fs.mkdirSync(this.cacheFolderPathW);
+		if (!fs.existsSync(this.cacheFolderPath)) {
+			fs.mkdirSync(this.cacheFolderPath);
 			this.cache = new Map();
 		} else {
 			this.cache = new Map(this.settings.cache);
@@ -84,11 +90,15 @@ export default class MyPlugin extends Plugin {
 	}
 
 	unloadCache() {
-		fs.rmdirSync(this.cacheFolderPathW, { recursive: true });
+		fs.rmdirSync(this.cacheFolderPath, { recursive: true });
 	}
 
 	formatLatexSource(source: string) {
-		return "\\documentclass{standalone}\n" + source;
+		return (
+			"\\documentclass{standalone}\n" +
+			this.settings.additionalPackages +
+			source
+		);
 	}
 
 	hashLatexSource(source: string) {
@@ -131,7 +141,7 @@ export default class MyPlugin extends Plugin {
 	) {
 		return new Promise<void>((resolve, reject) => {
 			let md5Hash = this.hashLatexSource(source);
-			let svgPath = path.join(this.cacheFolderPathW, `${md5Hash}.svg`);
+			let svgPath = path.join(this.cacheFolderPath, `${md5Hash}.svg`);
 
 			// SVG file has already been cached
 			// Could have a case where svgCache has the key but the cached file has been deleted
@@ -182,19 +192,24 @@ export default class MyPlugin extends Plugin {
 							let svgData = fs.readFileSync(
 								path.join(dirPath, md5Hash + ".svg")
 							);
+							let pngData = await this.svgStringToPngArrayBuffer(
+								svgData.toString()
+							);
+							if (this.settings.pngCopy) {
+								fs.writeFileSync(
+									path.join(
+										this.cacheFolderPath,
+										md5Hash + ".png"
+									),
+									Buffer.from(pngData)
+								);
+							}
 							let svgDataStr = this.addRandomPrefixToIds(
 								svgData.toString()
 							);
 							if (this.settings.enableCache) {
 								fs.writeFileSync(svgPath, svgDataStr);
-								// fs.copyFileSync(
-								// 	path.join(dirPath, md5Hash + ".svg"),
-								// 	svgPath
-								// );
 							}
-							// let svgData = fs.readFileSync(
-							// 	path.join(dirPath, md5Hash + ".svg")
-							// );
 							resolve(svgDataStr);
 						}
 					}
@@ -253,7 +268,7 @@ export default class MyPlugin extends Plugin {
 
 	removeSVGFromCache(key: string) {
 		this.cache.delete(key);
-		fs.rmSync(path.join(this.cacheFolderPathW, `${key}.svg`));
+		fs.rmSync(path.join(this.cacheFolderPath, `${key}.svg`));
 	}
 
 	removeFileFromCache(file_path: string) {
@@ -263,6 +278,71 @@ export default class MyPlugin extends Plugin {
 				this.removeSVGFromCache(hash);
 			}
 		}
+	}
+
+	async svgStringToPngArrayBuffer(svgString: string): Promise<ArrayBuffer> {
+		return new Promise<ArrayBuffer>((resolve, reject) => {
+			// Create a new image element
+			const img = new Image();
+
+			// Encode the SVG string into a data URL
+			const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+			const url = URL.createObjectURL(svgBlob);
+
+			// Set up the image load handler to draw on canvas
+			img.onload = () => {
+				// Create a canvas element
+				const canvas = document.createElement("canvas");
+				const context = canvas.getContext("2d");
+
+				if (!context) {
+					reject(new Error("Unable to get canvas 2D context"));
+					return;
+				}
+
+				// Set canvas dimensions to match the image
+				canvas.width = img.width * parseFloat(this.settings.pngScale);
+				canvas.height = img.height * parseFloat(this.settings.pngScale);
+
+				// Draw the SVG image on the canvas
+				context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+				// Revoke the object URL
+				URL.revokeObjectURL(url);
+
+				// Convert the canvas content to a Blob (PNG format)
+				canvas.toBlob((blob) => {
+					if (!blob) {
+						reject(
+							new Error("Canvas toBlob() resulted in a null blob")
+						);
+						return;
+					}
+
+					// Create a FileReader to convert the Blob to an ArrayBuffer
+					const reader = new FileReader();
+					reader.onloadend = () => {
+						if (reader.result) {
+							resolve(reader.result as ArrayBuffer);
+						} else {
+							reject(
+								new Error("FileReader failed to read the blob")
+							);
+						}
+					};
+					reader.readAsArrayBuffer(blob);
+				}, "image/png");
+			};
+
+			// Handle image load error
+			img.onerror = () => {
+				URL.revokeObjectURL(url);
+				reject(new Error("Failed to load SVG string as an image"));
+			};
+
+			// Set the image source to the data URL
+			img.src = url;
+		});
 	}
 
 	getLatexHashesFromCacheForFile(file: TFile) {
@@ -321,7 +401,8 @@ class SampleSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Command to generate SVG")
-			.addText((text) =>
+			.setClass("latex-render-settings")
+			.addTextArea((text) =>
 				text
 					.setValue(this.plugin.settings.command.toString())
 					.onChange(async (value) => {
@@ -333,7 +414,7 @@ class SampleSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Enable caching of SVGs")
 			.setDesc(
-				"SVGs rendered by this plugin will be kept in `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
+				"SVGs rendered by this plugin will be kept in `svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -345,9 +426,37 @@ class SampleSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Make a PNG copy of cached SVGs")
+			.setDesc(
+				"Cached SVGs rendered by this plugin will be rendered in PNG format in the cache directory."
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.pngCopy)
+					.onChange(async (value) => {
+						this.plugin.settings.pngCopy = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("PNG scale factor")
+			.setDesc(
+				"If enabled above, PNG format copies will be scaled by the factor below."
+			)
+			.addText((text) => {
+				text.setValue(this.plugin.settings.pngScale).onChange(
+					async (value) => {
+						this.plugin.settings.pngScale = value;
+						await this.plugin.saveSettings();
+					}
+				);
+			});
+
+		new Setting(containerEl)
 			.setName("Cache folder path")
 			.setDesc(
-				"SVGs rendered by this plugin will be kept in this folder, if set.  The default is `.obsidian/obsidian-latex-render-svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
+				"SVGs rendered by this plugin will be kept in this folder, if set.  The default is `svg-cache`. The plugin will automatically keep track of used svgs and remove any that aren't being used"
 			)
 			.addText((text) =>
 				text
@@ -357,6 +466,22 @@ class SampleSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.plugin.unloadCache();
 						this.plugin.loadCache();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Additional packages")
+			.setDesc(
+				"Latex packages typed here will be added to the standard latex source. This can be used to add custom packages or configurations to the latex source"
+			)
+			.setClass("latex-render-settings")
+			.addTextArea((text) =>
+				text
+					.setValue(
+						this.plugin.settings.additionalPackages.toString()
+					)
+					.onChange(async (value) => {
+						this.plugin.settings.additionalPackages = value;
+						await this.plugin.saveSettings();
 					})
 			);
 	}

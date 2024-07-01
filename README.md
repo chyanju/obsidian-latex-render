@@ -1,40 +1,56 @@
-*THIS PROJECT WAS MERELY AN EXPIREMENT AND I HAVE SINCE MOVED ONTO OTHER PROJECTS*
+_THIS PROJECT WAS MERELY AN EXPIREMENT AND I HAVE SINCE MOVED ONTO OTHER PROJECTS_
 
 # Obsidian Latex Renderer
 
 This plugin renders codeblocks with the label `latex` into an SVG and displays them inline in the note on preview. **You are required to bring your own command** that outputs a `.svg` file from a `.tex` file input, examples are given below.
 
 # Setup
+
 1. Install latex system
 2. Install this plugin
 3. Set the command in settings
 
 ## Command Syntax
+
 When these strings appear in your command, they will be replaced with their respective values. I would recommend wrapping them in quote marks `""` in the event of spaces.
 
 `{file-path}`: The absolute path to the file to be processed without the file extension. Most latex commands don't require the file extension, if one does you can just add it.
 
 ### Example
-    latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm "{file-path}"
+
+```bash
+latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm "{file-path}"
+```
 
 This command uses `latex` to output a `.dvi` file and `dvisvgm` to convert the `.dvi` into an `.svg`. Both of these commands should be available from most tex systems.
 
 The text in the output of the above command make look strange because by default `dvisvgm` uses `<font>` tags which are not supported by Obsidian. To fix this the `--font-format` option can be set. (See: https://dvisvgm.de/Manpage/)
 
-    latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --font-format=woff2,ah "{file-path}"
+```bash
+latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --font-format=woff2,ah "{file-path}"
+```
+
+Some machines might have trouble finding the ghostscript dylib, in this case you can set the environment variable, for example:
+
+```bash
+export LIBGS=/opt/homebrew/lib/libgs.dylib && latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --no-fonts "{file-path}"
+```
 
 # Usage
+
 The content inside of `latex` code blocks will be rendered using the given command. The document class `standalone` will be set for you using `\documentclass{standalone}`. You can load any packages you need with `\usepackage{}`.
 
 The generated svg's `<div>` parent has the class `block-language-latex`, so it can be styled using CSS snippets. For example, if you are using dark mode you can set `filter: invert(100%)` to invert the colours for a quick hack for dark themed diagrams. You could also set `background-color: white`.
 
 ## Caching
-By default the plugin will keep generated `.svg` files in `.obsidian/obsidian-latex-render-svg-cache/` so it won't have to re-render if nothing in the code block has changed, or you copy the code block to a different file, the plugin will simply reuse the `.svg` file. It'll keep track of which files use each `.svg` and when no files use a `.svg` the plugin removes it from the cache.
+
+By default the plugin will keep generated `.svg` files in `svg-cache` so it won't have to re-render if nothing in the code block has changed, or you copy the code block to a different file, the plugin will simply reuse the `.svg` file. It'll keep track of which files use each `.svg` and when no files use a `.svg` the plugin removes it from the cache.
 
 This should allow (hasn't been tested) `latex` code blocks to appear as `.svg` in notes when the vault is synced across different devices that may not have `latex` installed. Just don't edit the code block otherwise it won't be happy.
 
 ## Examples
-The svgs shown below have been generated in Obsidian with the setup in 
+
+The svgs shown below have been generated in Obsidian with the setup in
 
 <img align="right" src="./assets/svg1.svg" style="background-color: white">
 
@@ -161,8 +177,15 @@ C' \arrow[rr,"k'" near end] \arrow[dr,swap,"c"] && D' \arrow[dr,swap,"d"] \\
 ````
 
 # TODO
-- Use `tectonic`'s html experimental output, removing the need for `pdf2svg`
-- Find a better name (it feels generic, i don't like it)
-- Add preamable's
-- Github actions release
-- Use https://quicklatex.com/ as a renderer
+
+-   Use `tectonic`'s html experimental output, removing the need for `pdf2svg`
+-   Find a better name (it feels generic, i don't like it)
+-   Add preamable's
+-   Github actions release
+-   Use https://quicklatex.com/ as a renderer
+
+### Acknowledgements
+
+Thanks to fenjalien who created the original https://github.com/fenjalien/obsidian-latex-render which this plugin is based on,
+
+A mention goes to https://github.com/gboyd068/obsidian-swiftlatex-render who also adapted fenjalien's original plugin, but took it in a different direction. I was inspired by the idea of rendering latex in obsidian and decided to make my own version that more closely aligned with my use cases and objectives.
