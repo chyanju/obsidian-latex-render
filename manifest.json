@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-latex-render",
-	"name": "Latex Renderer",
+	"name": "Latex Render",
 	"version": "0.1.0",
 	"minAppVersion": "1",
 	"description": "",
-	"author": "fenjalien",
+	"author": "jvsteiner",
 	"isDesktopOnly": true
 }

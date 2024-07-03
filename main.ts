@@ -15,7 +15,7 @@ import * as temp from "temp";
 import * as path from "path";
 import { exec } from "child_process";
 
-interface MyPluginSettings {
+interface LatexRendererSettings {
 	command: string;
 	timeout: number;
 	enableCache: boolean;
@@ -26,7 +26,7 @@ interface MyPluginSettings {
 	pngScale: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: LatexRendererSettings = {
 	command: ``,
 	timeout: 10000,
 	enableCache: true,
@@ -37,8 +37,8 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	pngScale: "1",
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class LatexRenderer extends Plugin {
+	settings: LatexRendererSettings;
 	cacheFolderPath: string;
 
 	cache: Map<string, Set<string>>; // Key: md5 hash of latex source. Value: Set of file path names.
@@ -383,9 +383,9 @@ export default class MyPlugin extends Plugin {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: LatexRenderer;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: LatexRenderer) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -436,6 +436,8 @@ class SampleSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.pngCopy = value;
 						await this.plugin.saveSettings();
+						this.plugin.unloadCache();
+						this.plugin.loadCache();
 					})
 			);
 
@@ -449,6 +451,8 @@ class SampleSettingTab extends PluginSettingTab {
 					async (value) => {
 						this.plugin.settings.pngScale = value;
 						await this.plugin.saveSettings();
+						this.plugin.unloadCache();
+						this.plugin.loadCache();
 					}
 				);
 			});
@@ -482,6 +486,8 @@ class SampleSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.additionalPackages = value;
 						await this.plugin.saveSettings();
+						this.plugin.unloadCache();
+						this.plugin.loadCache();
 					})
 			);
 	}

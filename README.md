@@ -1,6 +1,6 @@
-_THIS PROJECT WAS MERELY AN EXPIREMENT AND I HAVE SINCE MOVED ONTO OTHER PROJECTS_
-
 # Obsidian Latex Renderer
+
+NOTE: This project is a fork of an existing plugin repository: https://github.com/fenjalien/obsidian-latex-render which was never published on the community plugins page. I have made some changes to the plugin to make it more user friendly and added some features. I will submit it there, since the original author has not done so, and at the time of this writing has indicated that they have moved onto other projects. In case you are the original author and would like me to hand over maintenance, please let me know.
 
 This plugin renders codeblocks with the label `latex` into an SVG and displays them inline in the note on preview. **You are required to bring your own command** that outputs a `.svg` file from a `.tex` file input, examples are given below.
 
@@ -176,16 +176,12 @@ C' \arrow[rr,"k'" near end] \arrow[dr,swap,"c"] && D' \arrow[dr,swap,"d"] \\
 ```
 ````
 
-# TODO
-
--   Use `tectonic`'s html experimental output, removing the need for `pdf2svg`
--   Find a better name (it feels generic, i don't like it)
--   Add preamable's
--   Github actions release
--   Use https://quicklatex.com/ as a renderer
-
 ### Acknowledgements
 
 Thanks to fenjalien who created the original https://github.com/fenjalien/obsidian-latex-render which this plugin is based on,
 
 A mention goes to https://github.com/gboyd068/obsidian-swiftlatex-render who also adapted fenjalien's original plugin, but took it in a different direction. I was inspired by the idea of rendering latex in obsidian and decided to make my own version that more closely aligned with my use cases and objectives.
+
+### Dev Notes:
+
+> You can simplify the version bump process by running npm version patch, npm version minor or npm version major after updating minAppVersion manually in manifest.json. The command will bump version in manifest.json and package.json, and add the entry for the new version to versions.json
