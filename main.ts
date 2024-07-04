@@ -47,15 +47,15 @@ export default class LatexRenderer extends Plugin {
 		await this.loadSettings();
 		console.log("Loaded settings", this.settings);
 		if (this.settings.enableCache) await this.loadCache();
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new LatexRendererSettingTab(this.app, this));
 		this.registerMarkdownCodeBlockProcessor("latex", (source, el, ctx) =>
 			this.renderLatexToElement(source, el, ctx)
 		);
 	}
 
-	// onunload() {
-	// 	if (this.settings.enableCache) this.unloadCache();
-	// }
+	onunload() {
+		// if (this.settings.enableCache) this.unloadCache();
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -71,12 +71,12 @@ export default class LatexRenderer extends Plugin {
 
 	async loadCache() {
 		console.log("Loading cache", this.settings.cacheFolder);
-		this.cacheFolderPath = path.join(
-			(this.app.vault.adapter as FileSystemAdapter).getBasePath(),
-			this.settings.cacheFolder
-			// this.app.vault.configDir,
-			// "obsidian-latex-render-svg-cache"
-		);
+		if (this.app.vault.adapter instanceof FileSystemAdapter) {
+			this.cacheFolderPath = path.join(
+				this.app.vault.adapter.getBasePath(),
+				this.settings.cacheFolder
+			);
+		}
 		if (!fs.existsSync(this.cacheFolderPath)) {
 			fs.mkdirSync(this.cacheFolderPath);
 			this.cache = new Map();
@@ -151,6 +151,7 @@ export default class LatexRenderer extends Plugin {
 				fs.existsSync(svgPath)
 			) {
 				console.log("Using cached SVG: ", md5Hash);
+				//skip - the DOM API or the Obsidian helper functions don't seem to have a way to insert an SVG element
 				el.innerHTML = fs.readFileSync(svgPath).toString();
 				this.addFileToCache(md5Hash, ctx.sourcePath);
 				resolve();
@@ -159,13 +160,14 @@ export default class LatexRenderer extends Plugin {
 
 				this.renderLatexToSVG(source, md5Hash, svgPath)
 					.then((v: string) => {
-						// v = this.addRandomPrefixToIds(v);
 						if (this.settings.enableCache)
 							this.addFileToCache(md5Hash, ctx.sourcePath);
+						//skip - the DOM API or the Obsidian helper functions don't seem to have a way to insert an SVG element
 						el.innerHTML = v;
 						resolve();
 					})
 					.catch((err) => {
+						//skip - the DOM API or the Obsidian helper functions don't seem to have a way to insert an SVG element
 						el.innerHTML = err;
 						reject(err);
 					});
@@ -247,7 +249,9 @@ export default class LatexRenderer extends Plugin {
 			if (file == null) {
 				this.removeFileFromCache(file_path);
 			} else {
-				await this.removeUnusedCachesForFile(file as TFile);
+				if (file instanceof TFile) {
+					await this.removeUnusedCachesForFile(file);
+				}
 			}
 		}
 		await this.saveCache();
@@ -382,7 +386,7 @@ export default class LatexRenderer extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class LatexRendererSettingTab extends PluginSettingTab {
 	plugin: LatexRenderer;
 
 	constructor(app: App, plugin: LatexRenderer) {
