@@ -2,8 +2,8 @@
 	"id": "latex-render",
 	"name": "Latex Render",
 	"version": "0.1.0",
-	"minAppVersion": "1",
-	"description": "",
+	"minAppVersion": "1.6.0",
+	"description": "A plugin to render snippets of latex code in the editor as SVG files.",
 	"author": "jvsteiner",
 	"isDesktopOnly": true
 }

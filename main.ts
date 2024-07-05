@@ -45,7 +45,7 @@ export default class LatexRenderer extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		console.log("Loaded settings", this.settings);
+		// console.log("Loaded settings", this.settings);
 		if (this.settings.enableCache) await this.loadCache();
 		this.addSettingTab(new LatexRendererSettingTab(this.app, this));
 		this.registerMarkdownCodeBlockProcessor("latex", (source, el, ctx) =>
@@ -70,7 +70,7 @@ export default class LatexRenderer extends Plugin {
 	}
 
 	async loadCache() {
-		console.log("Loading cache", this.settings.cacheFolder);
+		// console.log("Loading cache", this.settings.cacheFolder);
 		if (this.app.vault.adapter instanceof FileSystemAdapter) {
 			this.cacheFolderPath = path.join(
 				this.app.vault.adapter.getBasePath(),
@@ -150,13 +150,13 @@ export default class LatexRenderer extends Plugin {
 				this.cache.has(md5Hash) &&
 				fs.existsSync(svgPath)
 			) {
-				console.log("Using cached SVG: ", md5Hash);
+				// console.log("Using cached SVG: ", md5Hash);
 				//skip - the DOM API or the Obsidian helper functions don't seem to have a way to insert an SVG element
 				el.innerHTML = fs.readFileSync(svgPath).toString();
 				this.addFileToCache(md5Hash, ctx.sourcePath);
 				resolve();
 			} else {
-				console.log("Rendering SVG: ", md5Hash);
+				// console.log("Rendering SVG: ", md5Hash);
 
 				this.renderLatexToSVG(source, md5Hash, svgPath)
 					.then((v: string) => {
@@ -398,10 +398,6 @@ class LatexRendererSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
-
-		containerEl.createEl("h2", {
-			text: "Settings for the Latex Renderer plugin.",
-		});
 
 		new Setting(containerEl)
 			.setName("Command to generate SVG")
