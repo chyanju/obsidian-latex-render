@@ -399,8 +399,20 @@ class LatexRendererSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		containerEl
+			.createEl("p", {
+				text: 'This plugin uses latex to render SVGs. The SVGs are cached and automatically removed if they are not being used.  The key thing is to find a command that will work on your system. Example: `export LIBGS=/opt/homebrew/lib/libgs.dylib && latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --no-fonts "{file-path}"`.   For more information please see the ',
+			})
+			.createEl("a", {
+				text: "README",
+				href: "https://github.com/jvsteiner/obsidian-latex-render",
+			});
+
 		new Setting(containerEl)
 			.setName("Command to generate SVG")
+			.setDesc(
+				"The command to generate SVG from latex source. Use `{file-path}` as a placeholder for the file path."
+			)
 			.setClass("latex-render-settings")
 			.addTextArea((text) =>
 				text
