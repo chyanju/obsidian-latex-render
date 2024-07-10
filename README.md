@@ -176,6 +176,31 @@ C' \arrow[rr,"k'" near end] \arrow[dr,swap,"c"] && D' \arrow[dr,swap,"d"] \\
 ```
 ````
 
+The Babson Task
+
+<img align="right" src="./assets/svg7.svg" style="background-color: white">
+
+````latex
+```latex
+\usepackage{xskak}
+\usepackage{chessboard}
+\usepackage[LSB,LSBC4,T1]{fontenc}
+\begin{document}
+\setboardfontcolors{
+    blackfieldmask=gray!35}
+
+\storechessboardstyle{myboard}{%
+    borderwidth=0.3mm,
+    boardfontencoding=LSBC4,
+    boardfontfamily=alphadia,
+    moverstyle=triangle,
+    showmover}
+\setchessboard{style=myboard}
+\chessboard[largeboard, setfen=Bq1B1K2/3PpN2/P3Pp2/P1p2P2/2Pk1b1R/1p6/pN1P1P2/QR6 w - - 0 1, showmover]
+\end{document}
+```
+````
+
 ### Acknowledgements
 
 Thanks to fenjalien who created the original https://github.com/fenjalien/obsidian-latex-render which this plugin is based on,
