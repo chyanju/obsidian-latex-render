@@ -36,7 +36,7 @@ Some machines might have trouble finding the ghostscript dylib, in this case you
 export LIBGS=/opt/homebrew/lib/libgs.dylib && latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --no-fonts "{file-path}"
 ```
 
-NOTE: depending on your installation, the PATH variable might not be set correctly, so you might need to provide the full path to the `latex` and `dvisvgm` commands, ie. `/Library/TeX/texbin/latex` and `/Library/TeX/texbin/dvisvgm` on MacOS with MacTeX.
+**NOTE**: depending on your installation, the PATH variable might not be set correctly, in which case you need to provide the full path to the `latex` and `dvisvgm` commands, ie. `/Library/TeX/texbin/latex` and `/Library/TeX/texbin/dvisvgm` on MacOS with MacTeX. You can find the path to the `latex` command by running `which latex` in the terminal.
 
 # Usage
 
@@ -178,7 +178,7 @@ C' \arrow[rr,"k'" near end] \arrow[dr,swap,"c"] && D' \arrow[dr,swap,"d"] \\
 ```
 ````
 
-The Babson Task
+The Babson Task: Mate in _exactly_ 4 moves
 
 <img align="right" src="./assets/svg7.svg" style="background-color: white">
 
