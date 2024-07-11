@@ -36,6 +36,8 @@ Some machines might have trouble finding the ghostscript dylib, in this case you
 export LIBGS=/opt/homebrew/lib/libgs.dylib && latex -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && dvisvgm --no-fonts "{file-path}"
 ```
 
+NOTE: depending on your installation, the PATH variable might not be set correctly, so you might need to provide the full path to the `latex` and `dvisvgm` commands, ie. `/Library/TeX/texbin/latex` and `/Library/TeX/texbin/dvisvgm` on MacOS with MacTeX.
+
 # Usage
 
 The content inside of `latex` code blocks will be rendered using the given command. The document class `standalone` will be set for you using `\documentclass{standalone}`. You can load any packages you need with `\usepackage{}`.
