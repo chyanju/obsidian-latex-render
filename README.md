@@ -211,6 +211,8 @@ You can specify CSS styling for each svg rendered by inserting special extra lat
 
 ````latex
 ```latex
+%css% zoom: 130%;
+%css% border: 4mm ridge rgba(211, 220, 50, .6);
 \usepackage[noend]{algpseudocode}
 \begin{document}
 % the standalone mode conflicts with algorithm package,
