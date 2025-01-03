@@ -207,12 +207,10 @@ The Babson Task: Mate in _exactly_ 4 moves
 
 You can specify CSS styling for each svg rendered by inserting special extra latex comments starting with `%css%` followed by css style (one per line). For example:
 
-<img align="right" src="./assets/styling.jpg" style="background-color: white">
+<img align="right" src="./assets/styling.jpg" style="background-color: white; width:50%;">
 
 ````latex
 ```latex
-%css% zoom: 130%;
-%css% border: 4mm ridge rgba(211, 220, 50, .6);
 \usepackage[noend]{algpseudocode}
 \begin{document}
 % the standalone mode conflicts with algorithm package,
