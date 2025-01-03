@@ -234,6 +234,44 @@ You can specify CSS styling for each svg rendered by inserting special extra lat
 
 will zoom the rendering canvas to 150% and will add a fancy border to it. Note that: 1) the style is only applied to the current block so that you can make different adjustment for each block, 2) the cached svg/png won't have the style applied since it's applied to the canvas not the image content, and 3) exporting the entire note as pdf will render the style.
 
+### Rendering of Algorithm Block
+
+The following demonstrates an example of rendering an algorithm block with ACM style:
+
+<img align="right" src="./assets/svg8.svg" style="background-color: white">
+
+````latex
+```latex
+%css% zoom: 150%;
+\usepackage{libertine}
+\usepackage{libertinust1math}
+\usepackage[T1]{fontenc}
+\usepackage[noend]{algpseudocode}
+\begin{document}
+\fbox{\parbox{22em}{
+\textbf{Algorithm 1} Synthesis-Powered Transpilation
+\vskip2px \hrule height 1px \vskip2px
+    \begin{algorithmic}[1]
+		\State $i \gets 10$
+		\If{$i\geq 5$} 
+		    \State $i \gets i+1$ \Comment{Really?}
+		\Else
+		    \If{$i\leq 3$}
+		        \State $i \gets i+2$
+		    \EndIf
+		\EndIf 
+	\end{algorithmic}
+	}}
+\end{document}
+```
+````
+
+And the following command is used (as an example on macOS):
+
+```bash
+export LIBGS=/opt/homebrew/lib/libgs.dylib && /Library/TeX/texbin/pdflatex -output-format=dvi -interaction=nonstopmode -halt-on-error -shell-escape "{file-path}" && /Library/TeX/texbin/dvisvgm --font-format=woff2,ah "{file-path}"
+```
+
 ## Acknowledgements
 
 Thanks to fenjalien who created the original https://github.com/fenjalien/obsidian-latex-render which this plugin is based on,
