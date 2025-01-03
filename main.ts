@@ -95,7 +95,7 @@ export default class LatexRenderer extends Plugin {
 
 	formatLatexSource(source: string) {
 		return (
-			"\\documentclass{standalone}\n" +
+			"\\documentclass[varwidth]{standalone}\n" +
 			this.settings.additionalPackages +
 			source
 		);
@@ -142,6 +142,15 @@ export default class LatexRenderer extends Plugin {
 		return new Promise<void>((resolve, reject) => {
 			let md5Hash = this.hashLatexSource(source);
 			let svgPath = path.join(this.cacheFolderPath, `${md5Hash}.svg`);
+
+			// extract css instructions from source
+			let insts = source.split("\n");
+			for (const inst of insts) {
+				if (inst.startsWith("%css%")) {
+					const p = inst.slice("%css%".length); // get parameter
+					el.style.cssText += p;
+				}
+			}
 
 			// SVG file has already been cached
 			// Could have a case where svgCache has the key but the cached file has been deleted

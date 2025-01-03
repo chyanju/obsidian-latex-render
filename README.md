@@ -4,7 +4,7 @@ NOTE: This project is a fork of an existing plugin repository: https://github.co
 
 This plugin renders codeblocks with the label `latex` into an SVG and displays them inline in the note on preview. **You are required to bring your own command** that outputs a `.svg` file from a `.tex` file input, examples are given below.
 
-# Setup
+## Setup
 
 1. Install latex system
 2. Install this plugin
@@ -38,19 +38,19 @@ export LIBGS=/opt/homebrew/lib/libgs.dylib && latex -interaction=nonstopmode -ha
 
 **NOTE**: depending on your installation, the PATH variable might not be set correctly, in which case you need to provide the full path to the `latex` and `dvisvgm` commands, ie. `/Library/TeX/texbin/latex` and `/Library/TeX/texbin/dvisvgm` on MacOS with MacTeX. You can find the path to the `latex` command by running `which latex` in the terminal.
 
-# Usage
+## Usage
 
 The content inside of `latex` code blocks will be rendered using the given command. The document class `standalone` will be set for you using `\documentclass{standalone}`. You can load any packages you need with `\usepackage{}`.
 
 The generated svg's `<div>` parent has the class `block-language-latex`, so it can be styled using CSS snippets. For example, if you are using dark mode you can set `filter: invert(100%)` to invert the colours for a quick hack for dark themed diagrams. You could also set `background-color: white`.
 
-## Caching
+### Caching
 
 By default the plugin will keep generated `.svg` files in `svg-cache` so it won't have to re-render if nothing in the code block has changed, or you copy the code block to a different file, the plugin will simply reuse the `.svg` file. It'll keep track of which files use each `.svg` and when no files use a `.svg` the plugin removes it from the cache.
 
 This should allow (hasn't been tested) `latex` code blocks to appear as `.svg` in notes when the vault is synced across different devices that may not have `latex` installed. Just don't edit the code block otherwise it won't be happy.
 
-## Examples
+### Examples
 
 The svgs shown below have been generated in Obsidian with the setup in
 
@@ -203,12 +203,43 @@ The Babson Task: Mate in _exactly_ 4 moves
 ```
 ````
 
-### Acknowledgements
+### Block Specific Styling
+
+You can specify CSS styling for each svg rendered by inserting special extra latex comments starting with `%css%` followed by css style (one per line). For example:
+
+<img align="right" src="./assets/styling.jpg" style="background-color: white">
+
+````latex
+```latex
+%css% zoom: 130%;
+%css% border: 4mm ridge rgba(211, 220, 50, .6);
+\usepackage[noend]{algpseudocode}
+\begin{document}
+% the standalone mode conflicts with algorithm package,
+% so I'm using only algorithmic
+\textbf{Algorithm 1} Synthesis-Powered Transpilation
+    \begin{algorithmic}
+		\State $i \gets 10$
+		\If{$i\geq 5$} 
+		    \State $i \gets i-1$
+		\Else
+		    \If{$i\leq 3$}
+		        \State $i \gets i+2$
+		    \EndIf
+		\EndIf 
+	\end{algorithmic}
+\end{document}
+```
+````
+
+will zoom the rendering canvas to 150% and will add a fancy border to it. Note that: 1) the style is only applied to the current block so that you can make different adjustment for each block, 2) the cached svg/png won't have the style applied since it's applied to the canvas not the image content, and 3) exporting the entire note as pdf will render the style.
+
+## Acknowledgements
 
 Thanks to fenjalien who created the original https://github.com/fenjalien/obsidian-latex-render which this plugin is based on,
 
 A mention goes to https://github.com/gboyd068/obsidian-swiftlatex-render who also adapted fenjalien's original plugin, but took it in a different direction. I was inspired by the idea of rendering latex in obsidian and decided to make my own version that more closely aligned with my use cases and objectives.
 
-### Dev Notes:
+## Dev Notes:
 
 > You can simplify the version bump process by running npm version patch, npm version minor or npm version major after updating minAppVersion manually in manifest.json. The command will bump version in manifest.json and package.json, and add the entry for the new version to versions.json
